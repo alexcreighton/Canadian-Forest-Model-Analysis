@@ -1,0 +1,791 @@
+---
+title: "CIPHA_vs_Model"
+output: pdf_document
+---
+
+
+CIPHA data vs Model data calculations of stem # per hectare, basal area, biomass, height, and dbh
+
+# Key
+
+1 - Setup (import packages and datasets)
+
+2 - CIPHA (calculations from MEN data, for each species by node and MEN year)
+  2a - Stem # calculations
+  2b - Other parameters function
+  2c - MEN00 calculations
+  2d - MEN04 calculations
+  2e - MEN08 calculations
+  2f - MEN12 calculations
+  2g - MEN16 calculations
+  2h - Overall averages
+
+3 - Model (calculations from model data, for each species by node)
+  3a - Parameters function
+  3b - BAT calculations
+  3c - EDG calculations
+  3d - MIN calculations
+  3e - YRK calculations
+
+4 - Historical Data (calculations from CFS and USDA data for each species)
+  This can be used for comparison of Parkland region species to species overall
+
+# Section 1 - Setup
+
+This section reads in each package used throughout, as well as the necessary datasets. First, each of the MEN datasets are read in to calculate CIPHA averages. Then, each parameter for the different nodes run in the model are read in.
+```{r sec1}
+library("readxl")
+library(dplyr, warn.conflicts = FALSE)
+options(dplyr.summarise.inform = FALSE) 
+library(ggplot2)
+#library(tidyverse)
+#iris %>% summarise(n=n())
+#iris %>% group_by(Species) %>% summarise(n=n())
+#iris %>% group_by(Species) %>% summarise(n=n(), .groups = "keep")
+#iris %>% group_by(Species) %>% summarise(n=n(), .groups = "drop")
+#iris %>% group_by(Species) %>% summarise(n=n(), .groups = "drop_last")
+#iris %>% group_by(Species) %>% summarise(n=n(), .groups = "rowwise")
+
+#import MEN datasets
+setwd("/Users/alexcreighton/Desktop/NASA/codes/CIPHA/MEN_Parkland")
+MEN00<-read_excel("MEN00_Parkland.xlsx")
+MEN04<-read_excel("MEN04_Parkland.xlsx")
+MEN08<-read_excel("MEN08_Parkland.xlsx")
+MEN12<-read_excel("MEN12_Parkland.xlsx")
+MEN16<-read_excel("MEN16_Parkland.xlsx")
+
+#import model datasets
+###BAT
+setwd("/Users/alexcreighton/Desktop/NASA/runs/BAT12/BAT12_2020-08-28_mf10")
+BAT_stems<-read.csv("stems.csv")
+BAT_basal<-read.csv("basal.csv")
+BAT_bio<-read.csv("bio.csv")
+#BAT_height<-read.csv("height.csv")
+BAT_dbh<-read.csv("dbh.csv")
+
+###EDG
+setwd("/Users/alexcreighton/Desktop/NASA/runs/EDG22/EDG22_2020-08-28_mf10")
+EDG_stems<-read.csv("stems.csv")
+EDG_basal<-read.csv("basal.csv")
+EDG_bio<-read.csv("bio.csv")
+#EDG_height<-read.csv("height.csv")
+EDG_dbh<-read.csv("dbh.csv")
+
+###MIN
+setwd("/Users/alexcreighton/Desktop/NASA/runs/MIN22/MIN22_2020-08-28_mf10")
+MIN_stems<-read.csv("stems.csv")
+MIN_basal<-read.csv("basal.csv")
+MIN_bio<-read.csv("bio.csv")
+#MIN_height<-read.csv("height.csv")
+MIN_dbh<-read.csv("dbh.csv")
+
+###YRK (1-1 ONLY)
+setwd("/Users/alexcreighton/Desktop/NASA/runs/YRK11/YRK11_2020-11-16_mf10")
+YRK_stems<-read.csv("stems.csv")
+YRK_basal<-read.csv("basal.csv")
+YRK_bio<-read.csv("bio.csv")
+#YRK_height<-read.csv("height.csv")
+YRK_dbh<-read.csv("dbh.csv")
+
+```
+
+
+
+# Section 2 - CIPHA Calculations
+
+This section contains the calculations for each of the parameters being analyzed from the MEN datasets. The calculations can be done using one function created with the intention of inputting the desired dataset, node, grouping variable, and parameter and providing a table with the calculations. This section is broken up into subsections - the first calculating stem #, followed by the function for other parameters, then each MEN year's results.
+
+###2a - Stem # per Hectare
+```{r sec2a}
+species_count <- function(df, desired_node, grouping_var) {
+  grouping_var = enquo(grouping_var)
+  
+  count <- df %>%
+    filter(node==desired_node)%>%
+    group_by(!!grouping_var)%>%
+    count(!!grouping_var)
+}
+
+#MEN00
+test<-species_count(MEN00, "BAT", species)
+View(test)
+#304 - 4, 311 - 209
+test<-species_count(MEN00, "EDG", species)
+View(test)
+#304 - 1, 311 - 200
+test<-species_count(MEN00, "MIN", species)
+View(test)
+#168 - 10, 304 - 20, 311 - 235
+test<-species_count(MEN00, "YRK", species)
+View(test)
+#304 - 3, 311 - 167
+
+#MEN04
+test<-species_count(MEN04, "BAT", species)
+View(test)
+#304 - 4, 311 - 209
+test<-species_count(MEN04, "EDG", species)
+View(test)
+#304 - 1, 311 - 200
+test<-species_count(MEN04, "MIN", species)
+View(test)
+#168 - 10, 304 - 20, 311 - 235
+test<-species_count(MEN04, "YRK", species)
+View(test)
+#304 - 4, 311 - 170
+
+#MEN08
+test<-species_count(MEN08, "BAT", species)
+View(test)
+#304 - 2, 311 - 148
+test<-species_count(MEN08, "EDG", species)
+View(test)
+#304 - 1, 311 - 200
+test<-species_count(MEN08, "MIN", species)
+View(test)
+#168 - 10, 304 - 19, 311 - 236
+test<-species_count(MEN08, "YRK", species)
+View(test)
+#304 - 4, 311 - 170
+
+#MEN12
+test<-species_count(MEN12, "BAT", species)
+View(test)
+#304 - 4, 311 - 210
+test<-species_count(MEN12, "EDG", species)
+View(test)
+#304 - 1, 311 - 209
+test<-species_count(MEN12, "MIN", species)
+View(test)
+#168 - 15, 304 - 22, 311 - 258
+test<-species_count(MEN12, "YRK", species)
+View(test)
+#304 - 4, 311 - 176
+
+#MEN16
+test<-species_count(MEN16, "BAT", species)
+View(test)
+#304 - 4, 311 - 213
+test<-species_count(MEN16, "EDG", species)
+View(test)
+#304 - 1, 311 - 223
+test<-species_count(MEN16, "MIN", species)
+View(test)
+#168 - 17, 304 - 22, 311 - 276
+test<-species_count(MEN16, "YRK", species)
+View(test)
+#304 - 4, 311 - 176
+
+```
+
+
+###2b - Other parameters' function
+```{r sec2b}
+#calculate biomass for each dataset and species within the dataset
+MEN00$biomass[MEN00$species==168]<-0.1182*(MEN00$dbh)^2.4287
+MEN00$biomass[MEN00$species==304]<-0.0510*(MEN00$dbh)^2.4529
+MEN00$biomass[MEN00$species==311]<-0.1008*(MEN00$dbh)^2.4341
+
+MEN04$biomass[MEN04$species==168]<-0.1182*(MEN04$dbh)^2.4287
+MEN04$biomass[MEN04$species==304]<-0.0510*(MEN04$dbh)^2.4529
+MEN04$biomass[MEN04$species==311]<-0.1008*(MEN04$dbh)^2.4341
+
+MEN08$biomass[MEN08$species==168]<-0.1182*(MEN08$dbh)^2.4287
+MEN08$biomass[MEN08$species==304]<-0.0510*(MEN08$dbh)^2.4529
+MEN08$biomass[MEN08$species==311]<-0.1008*(MEN08$dbh)^2.4341
+
+MEN12$biomass[MEN12$species==168]<-0.1182*(MEN12$dbh)^2.4287
+MEN12$biomass[MEN12$species==304]<-0.0510*(MEN12$dbh)^2.4529
+MEN12$biomass[MEN12$species==311]<-0.1008*(MEN12$dbh)^2.4341
+
+MEN16$biomass[MEN16$species==168]<-0.1182*(MEN16$dbh)^2.4287
+MEN16$biomass[MEN16$species==304]<-0.0510*(MEN16$dbh)^2.4529
+MEN16$biomass[MEN16$species==311]<-0.1008*(MEN16$dbh)^2.4341
+
+#calculate basal area for each dataset
+MEN00$basal<-0.005454*MEN00$dbh^2
+MEN04$basal<-0.005454*MEN04$dbh^2
+MEN08$basal<-0.005454*MEN08$dbh^2
+MEN12$basal<-0.005454*MEN12$dbh^2
+MEN16$basal<-0.005454*MEN16$dbh^2
+
+
+species_avgs_cipha <- function(df, desired_node, grouping_var, target_var) {
+  target_var = enquo(target_var)
+  grouping_var = enquo(grouping_var)
+  
+  averages <- df %>%
+    filter(node==desired_node)%>%
+    group_by(!!grouping_var)%>%
+    summarise(var_avg=mean(!!target_var,na.rm = TRUE))
+}
+
+
+```
+
+
+###2c - MEN00
+```{r sec2c}
+##MEN00
+###height
+test<-species_avgs_cipha(MEN00, "BAT", species, ht_total)
+View(test)
+#304 - 12.6; 311 - 13.7866
+
+test<-species_avgs_cipha(MEN00, "EDG", species, ht_total)
+View(test)
+#311 - 13.552
+
+test<-species_avgs_cipha(MEN00, "MIN", species, ht_total)
+View(test)
+#168 - 3.67; 304 - 6.52; 311 - 14.89786
+
+test<-species_avgs_cipha(MEN00, "YRK", species, ht_total)
+View(test)
+#304 - 11.3; 311 - 14.96108
+
+
+###dbh
+test<-species_avgs_cipha(MEN00, "BAT", species, dbh)
+View(test)
+#304 - 23.25; 311 - 18.80861
+
+test<-species_avgs_cipha(MEN00, "EDG", species, dbh)
+View(test)
+#304 - 10.0; 311 - 17.475
+
+test<-species_avgs_cipha(MEN00, "MIN", species, dbh)
+View(test)
+#168 - 9.10; 304 - 14.10; 311 - 18.17447
+
+test<-species_avgs_cipha(MEN00, "YRK", species, dbh)
+View(test)
+#304 - 14.3333; 311 - 16.13174
+
+
+###basal area
+test<-species_avgs_cipha(MEN00, "BAT", species, basal)
+View(test)
+#304 - 3.041968; 311 - 2.061847
+
+test<-species_avgs_cipha(MEN00, "EDG", species, basal)
+View(test)
+#304 - 0.545400; 311 - 1.845199
+
+test<-species_avgs_cipha(MEN00, "MIN", species, basal)
+View(test)
+#168 - 0.5197662; 304 - 1.1911536; 311 - 1.9773883
+
+test<-species_avgs_cipha(MEN00, "YRK", species, basal)
+View(test)
+#304 - 1.20897; 311 - 1.55488
+
+
+###biomass
+test<-species_avgs_cipha(MEN00, "BAT", species, biomass)
+View(test)
+#304 - 95.9746; 311 - 142.9867
+
+test<-species_avgs_cipha(MEN00, "EDG", species, biomass)
+View(test)
+#304 - 89.29803; 311 - 128.18823
+
+test<-species_avgs_cipha(MEN00, "MIN", species, biomass)
+View(test)
+#168 - 175.38714; 304 - 88.15247; 311 - 124.28361
+
+test<-species_avgs_cipha(MEN00, "YRK", species, biomass)
+View(test)
+#304 - 65.83038; 311 - 119.60756
+
+```
+
+
+###2d - MEN04
+```{r sec2c}
+##MEN04
+###height
+test<-species_avgs_cipha(MEN04, "BAT", species, ht_total)
+View(test)
+#304 - 15.86667; 311 - 15.05714
+
+test<-species_avgs_cipha(MEN04, "EDG", species, ht_total)
+View(test)
+#311 - 14.79939
+
+test<-species_avgs_cipha(MEN04, "MIN", species, ht_total)
+View(test)
+#168 - 4.000000; 304 - 6.533333; 311 - 16.702273
+
+test<-species_avgs_cipha(MEN04, "YRK", species, ht_total)
+View(test)
+#304 - 10.775; 311 - 15.27607
+
+
+###dbh
+test<-species_avgs_cipha(MEN04, "BAT", species, dbh)
+View(test)
+#304 - 21.83333; 311 - 20.48061
+
+test<-species_avgs_cipha(MEN04, "EDG", species, dbh)
+View(test)
+#311 - 18.71988
+
+test<-species_avgs_cipha(MEN04, "MIN", species, dbh)
+View(test)
+#168 - 9.666667; 304 - 15.236364; 311 - 19.210048
+
+test<-species_avgs_cipha(MEN04, "YRK", species, dbh)
+View(test)
+#304 - 12.82500; 311 - 16.51647
+
+
+###basal area
+test<-species_avgs_cipha(MEN04, "BAT", species, basal)
+View(test)
+#304 - 2.611102; 311 - 2.410661
+
+test<-species_avgs_cipha(MEN04, "EDG", species, basal)
+View(test)
+#311 - 2.094679
+
+test<-species_avgs_cipha(MEN04, "MIN", species, basal)
+View(test)
+#168 - 0.549436; 304 - 1.344342; 311 - 2.158886
+
+test<-species_avgs_cipha(MEN04, "YRK", species, basal)
+View(test)
+#304 - 1.018030; 311 - 1.631481
+
+
+###biomass
+test<-species_avgs_cipha(MEN04, "BAT", species, biomass)
+View(test)
+#304 - 102.2195; 311 - 170.6453
+
+test<-species_avgs_cipha(MEN04, "EDG", species, biomass)
+View(test)
+#304 - 87.22636; 311 - 148.93591
+
+test<-species_avgs_cipha(MEN04, "MIN", species, biomass)
+View(test)
+#168 - 188.3509; 304 - 104.6622; 311 - 140.6343
+
+test<-species_avgs_cipha(MEN04, "YRK", species, biomass)
+View(test)
+#304 - 75.76029; 311 - 130.25612
+
+```
+
+
+###2e - MEN08
+```{r sec2c}
+##MEN08
+###height - NO DATA
+test<-species_avgs_cipha(MEN08, "BAT", species, ht_total)
+View(test)
+
+test<-species_avgs_cipha(MEN08, "EDG", species, ht_total)
+View(test)
+
+test<-species_avgs_cipha(MEN08, "MIN", species, ht_total)
+View(test)
+
+test<-species_avgs_cipha(MEN08, "YRK", species, ht_total)
+View(test)
+
+
+###dbh
+test<-species_avgs_cipha(MEN08, "BAT", species, dbh)
+View(test)
+#304 - 27.1; 311 - 20.53393
+
+test<-species_avgs_cipha(MEN08, "EDG", species, dbh)
+View(test)
+#311 - 19.32704
+
+test<-species_avgs_cipha(MEN08, "MIN", species, dbh)
+View(test)
+#168 - 10.00000; 304 - 15.40000; 311 - 20.60171
+
+test<-species_avgs_cipha(MEN08, "YRK", species, dbh)
+View(test)
+#304 - 13.45000; 311 - 17.61437
+
+
+###basal area
+test<-species_avgs_cipha(MEN08, "BAT", species, basal)
+View(test)
+#304 - 4.0648662; 311 - 2.4847051
+
+test<-species_avgs_cipha(MEN08, "EDG", species, basal)
+View(test)
+#311 - 2.240644
+
+test<-species_avgs_cipha(MEN08, "MIN", species, basal)
+View(test)
+#168 - 0.5487088; 304 - 1.3935437; 311 - 2.4541033
+
+test<-species_avgs_cipha(MEN08, "YRK", species, basal)
+View(test)
+#304 - 1.096963; 311 - 1.836774
+
+
+###biomass
+test<-species_avgs_cipha(MEN08, "BAT", species, biomass)
+View(test)
+#304 - 37.22913; 311 - 182.28589
+
+test<-species_avgs_cipha(MEN08, "EDG", species, biomass)
+View(test)
+#304 - 62.01974; 311 - 159.60239
+
+test<-species_avgs_cipha(MEN08, "MIN", species, biomass)
+View(test)
+#168 - 189.1799; 304 - 104.9069; 311 - 168.6125
+
+test<-species_avgs_cipha(MEN08, "YRK", species, biomass)
+View(test)
+#304 - 118.6498; 311 - 141.7703
+
+```
+
+
+###2f - MEN12
+```{r sec2c}
+##MEN12
+###height
+test<-species_avgs_cipha(MEN12, "BAT", species, ht_total)
+View(test)
+#304 - 5.400000; 311 - 4.009615
+
+test<-species_avgs_cipha(MEN12, "EDG", species, ht_total)
+View(test)
+#311 - 11.5043
+
+test<-species_avgs_cipha(MEN12, "MIN", species, ht_total)
+View(test)
+#168 - 1.900000; 304 - 2.650000; 311 - 4.138095
+
+test<-species_avgs_cipha(MEN12, "YRK", species, ht_total)
+View(test)
+#304 - 3.900000; 311 - 5.142857
+
+
+###dbh
+test<-species_avgs_cipha(MEN12, "BAT", species, dbh)
+View(test)
+#304 - 22.20000; 311 - 22.32464
+
+test<-species_avgs_cipha(MEN12, "EDG", species, dbh)
+View(test)
+#311 - 20.50347
+
+test<-species_avgs_cipha(MEN12, "MIN", species, dbh)
+View(test)
+#168 - 9.30000; 304 - 13.84286; 311 - 19.97738
+
+test<-species_avgs_cipha(MEN12, "YRK", species, dbh)
+View(test)
+#304 - 14.15; 311 - 17.84658
+
+
+###basal area
+test<-species_avgs_cipha(MEN12, "BAT", species, basal)
+View(test)
+#304 - 2.7070384; 311 - 2.8940212
+
+test<-species_avgs_cipha(MEN12, "EDG", species, basal)
+View(test)
+#311 - 2.541984
+
+test<-species_avgs_cipha(MEN12, "MIN", species, basal)
+View(test)
+#168 - 0.4796793; 304 - 1.2423199; 311 - 2.4306030
+
+test<-species_avgs_cipha(MEN12, "YRK", species, basal)
+View(test)
+#304 - 1.197508; 311 - 1.901423
+
+
+###biomass
+test<-species_avgs_cipha(MEN12, "BAT", species, biomass)
+View(test)
+#304 - 131.0696; 311 - 211.5177
+
+test<-species_avgs_cipha(MEN12, "EDG", species, biomass)
+View(test)
+#304 - 81.18327; 311 - 189.04279
+
+test<-species_avgs_cipha(MEN12, "MIN", species, biomass)
+View(test)
+#168 - 245.5263; 304 - 137.4687; 311 - 159.5103
+
+test<-species_avgs_cipha(MEN12, "YRK", species, biomass)
+View(test)
+#304 - 67.81865; 311 - 158.02847
+
+```
+
+
+###2g - MEN16
+```{r sec2c}
+##MEN16
+###height - NO DATA
+test<-species_avgs_cipha(MEN16, "BAT", species, ht_total)
+View(test)
+
+test<-species_avgs_cipha(MEN16, "EDG", species, ht_total)
+View(test)
+
+test<-species_avgs_cipha(MEN16, "MIN", species, ht_total)
+View(test)
+
+test<-species_avgs_cipha(MEN16, "YRK", species, ht_total)
+View(test)
+
+
+###dbh
+test<-species_avgs_cipha(MEN16, "BAT", species, dbh)
+View(test)
+#304 - 22.5000; 311 - 24.1266
+
+test<-species_avgs_cipha(MEN16, "EDG", species, dbh)
+View(test)
+#311 - 20.35455
+
+test<-species_avgs_cipha(MEN16, "MIN", species, dbh)
+View(test)
+#168 - 9.72500; 304 - 14.24286; 311 - 19.80888
+
+test<-species_avgs_cipha(MEN16, "YRK", species, dbh)
+View(test)
+#311 - 18.54015
+
+
+###basal area
+test<-species_avgs_cipha(MEN16, "BAT", species, basal)
+View(test)
+#304 - 2.797957; 311 - 3.399271
+
+test<-species_avgs_cipha(MEN16, "EDG", species, basal)
+View(test)
+#311 - 2.600805
+
+test<-species_avgs_cipha(MEN16, "MIN", species, basal)
+View(test)
+#168 - 0.5270609; 304 - 1.3180526; 311 - 2.4624787
+
+test<-species_avgs_cipha(MEN16, "YRK", species, basal)
+View(test)
+#311 - 2.041534
+
+
+###biomass
+test<-species_avgs_cipha(MEN16, "BAT", species, biomass)
+View(test)
+#304 - 200.4508; 311 - 262.5749
+
+test<-species_avgs_cipha(MEN16, "EDG", species, biomass)
+View(test)
+#311 - 200.984
+
+test<-species_avgs_cipha(MEN16, "MIN", species, biomass)
+View(test)
+#168 - 487.5925; 304 - 194.2675; 311 - 158.2773
+
+test<-species_avgs_cipha(MEN16, "YRK", species, biomass)
+View(test)
+#311 - 177.0033
+
+```
+
+
+
+# Section 3 - Model Calculations
+
+This section contains the calculations for each of the parameters being analyzed from the model's output datasets. This section is broken up into subsections - the first is the overall function to calculation parameter averages, followed by each nodes' results.
+
+### 3a - Parameter function
+```{r sec3a}
+species_avgs_model <- function(df, target_species) {
+  target_species = enquo(target_species)
+  
+  averages <- df %>%
+    summarise(var_avg=mean(!!target_species,na.rm = TRUE))
+}
+
+```
+
+
+### 3b - BAT
+```{r sec3b}
+##basal
+test<-species_avgs_model(BAT_basal, BEPA)
+View(test)
+test<-species_avgs_model(BAT_basal, POBA)
+View(test)
+test<-species_avgs_model(BAT_basal, POTR)
+View(test)
+
+
+##biomass
+test<-species_avgs_model(BAT_bio, BEPA)
+View(test)
+test<-species_avgs_model(BAT_bio, POBA)
+View(test)
+test<-species_avgs_model(BAT_bio, POTR)
+View(test)
+
+
+##DBH
+test<-species_avgs_model(BAT_dbh, BEPA)
+View(test)
+test<-species_avgs_model(BAT_dbh, POBA)
+View(test)
+test<-species_avgs_model(BAT_dbh, POTR)
+View(test)
+
+
+##stems
+test<-species_avgs_model(BAT_stems, BEPA)
+View(test)
+test<-species_avgs_model(BAT_stems, POBA)
+View(test)
+test<-species_avgs_model(BAT_stems, POTR)
+View(test)
+
+```
+
+
+### 3c - EDG
+```{r sec3c}
+##basal
+test<-species_avgs_model(EDG_basal, BEPA)
+View(test)
+test<-species_avgs_model(EDG_basal, POBA)
+View(test)
+test<-species_avgs_model(EDG_basal, POTR)
+View(test)
+
+
+##biomass
+test<-species_avgs_model(EDG_bio, BEPA)
+View(test)
+test<-species_avgs_model(EDG_bio, POBA)
+View(test)
+test<-species_avgs_model(EDG_bio, POTR)
+View(test)
+
+
+##DBH
+test<-species_avgs_model(EDG_dbh, BEPA)
+View(test)
+test<-species_avgs_model(EDG_dbh, POBA)
+View(test)
+test<-species_avgs_model(EDG_dbh, POTR)
+View(test)
+
+
+##stems
+test<-species_avgs_model(EDG_stems, BEPA)
+View(test)
+test<-species_avgs_model(EDG_stems, POBA)
+View(test)
+test<-species_avgs_model(EDG_stems, POTR)
+View(test)
+
+```
+
+
+### 3d - MIN
+```{r sec3d}
+##basal
+test<-species_avgs_model(MIN_basal, BEPA)
+View(test)
+test<-species_avgs_model(MIN_basal, POBA)
+View(test)
+test<-species_avgs_model(MIN_basal, POTR)
+View(test)
+
+
+##biomass
+test<-species_avgs_model(MIN_bio, BEPA)
+View(test)
+test<-species_avgs_model(MIN_bio, POBA)
+View(test)
+test<-species_avgs_model(MIN_bio, POTR)
+View(test)
+
+
+##DBH
+test<-species_avgs_model(MIN_dbh, BEPA)
+View(test)
+test<-species_avgs_model(MIN_dbh, POBA)
+View(test)
+test<-species_avgs_model(MIN_dbh, POTR)
+View(test)
+
+
+##stems
+test<-species_avgs_model(MIN_stems, BEPA)
+View(test)
+test<-species_avgs_model(MIN_stems, POBA)
+View(test)
+test<-species_avgs_model(MIN_stems, POTR)
+View(test)
+
+```
+
+
+### 3e - YRK
+```{r sec3e}
+##basal
+test<-species_avgs_model(YRK_basal, BEPA)
+View(test)
+test<-species_avgs_model(YRK_basal, POBA)
+View(test)
+test<-species_avgs_model(YRK_basal, POTR)
+View(test)
+
+
+##biomass
+test<-species_avgs_model(YRK_bio, BEPA)
+View(test)
+test<-species_avgs_model(YRK_bio, POBA)
+View(test)
+test<-species_avgs_model(YRK_bio, POTR)
+View(test)
+
+
+##DBH
+test<-species_avgs_model(YRK_dbh, BEPA)
+View(test)
+test<-species_avgs_model(YRK_dbh, POBA)
+View(test)
+test<-species_avgs_model(YRK_dbh, POTR)
+View(test)
+
+
+##stems
+test<-species_avgs_model(YRK_stems, BEPA)
+View(test)
+test<-species_avgs_model(YRK_stems, POBA)
+View(test)
+test<-species_avgs_model(YRK_stems, POTR)
+View(test)
+
+```
+
+
+
+
+# Section 4
+
+This section contains calculations from historical data (from the CFS and USDA) for the relevant species in the Parkland region. This information can be used for comparisons of Parkland species to the species' overall. 
+
+```{r sec4}
+#not ultimately used
+
+```
+
